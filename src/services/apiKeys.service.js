@@ -54,4 +54,38 @@ async function getApiKeyByKey(apiKey) {
   return data;
 }
 
-module.exports = { createApiKey, getApiKeyByKey, ALLOWED_TIERS };
+/**
+ * Update tier sebuah API key (dipakai endpoint admin toggle tier).
+ * @param {string} id - id (uuid) baris di tabel api_keys
+ * @param {string} tier - 'free' | 'paid'
+ * @returns {Promise<object>} baris api_keys setelah diupdate
+ */
+async function updateApiKeyTier(id, tier) {
+  const { data, error } = await supabase
+    .from("api_keys")
+    .update({ tier })
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) {
+    const err = new Error(`Gagal update tier API key: ${error.message}`);
+    err.statusCode = 500;
+    throw err;
+  }
+
+  if (!data) {
+    const err = new Error("API key tidak ditemukan");
+    err.statusCode = 404;
+    throw err;
+  }
+
+  return data;
+}
+
+module.exports = {
+  createApiKey,
+  getApiKeyByKey,
+  updateApiKeyTier,
+  ALLOWED_TIERS,
+};

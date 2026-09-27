@@ -1,4 +1,8 @@
-const { createApiKey, ALLOWED_TIERS } = require("../services/apiKeys.service");
+const {
+  createApiKey,
+  updateApiKeyTier,
+  ALLOWED_TIERS,
+} = require("../services/apiKeys.service");
 
 /**
  * POST /api-keys
@@ -60,4 +64,42 @@ function getMyStatusHandler(req, res) {
   });
 }
 
-module.exports = { generateApiKeyHandler, getMyStatusHandler };
+/**
+ * PATCH /api-keys/:id/tier
+ * Body: { tier: 'free' | 'paid' }
+ * Endpoint admin sederhana untuk toggle tier API key secara manual
+ * (tanpa payment gateway) — diproteksi adminAuth.middleware.js.
+ */
+async function updateTierHandler(req, res, next) {
+  try {
+    const { id } = req.params;
+    const { tier } = req.body || {};
+
+    if (!ALLOWED_TIERS.includes(tier)) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          message: `Field "tier" wajib diisi, salah satu dari: ${ALLOWED_TIERS.join(", ")}`,
+          status: 400,
+        },
+      });
+    }
+
+    const updated = await updateApiKeyTier(id, tier);
+    const { api_key: _apiKey, ...safeData } = updated;
+
+    res.status(200).json({
+      success: true,
+      message: `Tier API key berhasil diubah menjadi "${tier}"`,
+      data: safeData,
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+module.exports = {
+  generateApiKeyHandler,
+  getMyStatusHandler,
+  updateTierHandler,
+};

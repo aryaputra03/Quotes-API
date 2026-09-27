@@ -15,11 +15,20 @@ const WINDOW_MS = 24 * 60 * 60 * 1000;
  * `const limit = ...` di bawah ini tinggal diganti supaya membaca
  * dari req.apiKeyData.tier.
  */
+/**
+ * Middleware rate limiting berbasis sliding window log (Redis sorted set).
+ * Wajib dipasang SETELAH authMiddleware DAN tierMiddleware, karena
+ * butuh req.apiKeyData (identitas) dan req.rateLimitConfig.limit
+ * (angka limit yang sudah disesuaikan tier oleh tier.middleware.js).
+ */
 async function rateLimitMiddleware(req, res, next) {
   try {
     const { api_key: apiKey } = req.apiKeyData;
     const rateKey = `rate:${apiKey}`;
-    const limit = env.RATE_LIMIT_FREE_PER_DAY;
+    // Fallback ke RATE_LIMIT_FREE_PER_DAY kalau entah kenapa tierMiddleware
+    // belum dipasang di depan middleware ini — supaya tidak crash,
+    // walau seharusnya req.rateLimitConfig selalu ada di alur normal.
+    const limit = req.rateLimitConfig?.limit ?? env.RATE_LIMIT_FREE_PER_DAY;
 
     const { allowed, count } = await checkRateLimit(rateKey, limit, WINDOW_MS);
     const remaining = Math.max(limit - count, 0);

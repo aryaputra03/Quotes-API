@@ -20,10 +20,12 @@ const env = {
     parseInt(process.env.RATE_LIMIT_FREE_PER_DAY, 10) || 100,
   RATE_LIMIT_PAID_PER_DAY:
     parseInt(process.env.RATE_LIMIT_PAID_PER_DAY, 10) || 10000,
+
+  ADMIN_SECRET: process.env.ADMIN_SECRET || "1234",
 };
 
 // Validasi minimal: pastikan variabel wajib untuk fase selanjutnya tidak kosong.
-const requiredForLaterPhases = ["SUPABASE_URL", "SUPABASE_KEY"];
+const requiredForLaterPhases = ["SUPABASE_URL", "SUPABASE_KEY", "ADMIN_SECRET"];
 requiredForLaterPhases.forEach((key) => {
   if (!env[key]) {
     console.warn(

@@ -12,6 +12,8 @@ const {
 
 const rateLimitMiddleware = require("../middlewares/rateLimit.middleware");
 
+const { tierMiddleware } = require("../middlewares/tier.middleware");
+
 // Harus sinkron dengan kategori yang ada di seed data (Fase 1).
 // Ganti/tambah di sini kalau nanti ada kategori baru.
 const ALLOWED_CATEGORIES = [
@@ -27,6 +29,10 @@ const router = express.Router();
 // Semua endpoint /quotes adalah core feature yang diukur & dibatasi,
 // jadi wajib pakai X-API-Key (sesuai urutan middleware: Auth di depan).
 router.use(authMiddleware);
+
+// Tier Check: petakan tier -> limit harian, taruh di req.rateLimitConfig,
+// supaya rateLimitMiddleware di bawah ini tahu limit mana yang dipakai.
+router.use(tierMiddleware);
 
 // Rate limit dipasang tepat setelah auth — sesuai "Urutan Middleware (Recap)"
 // di roadmap: Auth harus lebih dulu karena Rate Limit butuh identitas (apiKeyData).
