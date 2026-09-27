@@ -10,6 +10,8 @@ const {
   allHandler,
 } = require("../controllers/quotes.controller");
 
+const rateLimitMiddleware = require("../middlewares/rateLimit.middleware");
+
 // Harus sinkron dengan kategori yang ada di seed data (Fase 1).
 // Ganti/tambah di sini kalau nanti ada kategori baru.
 const ALLOWED_CATEGORIES = [
@@ -25,6 +27,10 @@ const router = express.Router();
 // Semua endpoint /quotes adalah core feature yang diukur & dibatasi,
 // jadi wajib pakai X-API-Key (sesuai urutan middleware: Auth di depan).
 router.use(authMiddleware);
+
+// Rate limit dipasang tepat setelah auth — sesuai "Urutan Middleware (Recap)"
+// di roadmap: Auth harus lebih dulu karena Rate Limit butuh identitas (apiKeyData).
+router.use(rateLimitMiddleware);
 
 router.get("/random", randomHandler);
 
