@@ -40,8 +40,51 @@ router.use(tierMiddleware);
 // di roadmap: Auth harus lebih dulu karena Rate Limit butuh identitas (apiKeyData).
 router.use(rateLimitMiddleware);
 
+/**
+ * @openapi
+ * /quotes/random:
+ *   get:
+ *     summary: Ambil 1 quote secara acak
+ *     tags: [Quotes]
+ *     security:
+ *       - ApiKeyAuth: []
+ *     responses:
+ *       200:
+ *         description: Satu quote acak
+ *       401:
+ *         description: X-API-Key tidak ada / tidak valid
+ *       404:
+ *         description: Belum ada data quotes di database
+ *       429:
+ *         description: Rate limit terlampaui
+ */
 router.get("/random", randomHandler);
 
+/**
+ * @openapi
+ * /quotes/by-author:
+ *   get:
+ *     summary: Cari quotes berdasarkan nama author (partial match)
+ *     tags: [Quotes]
+ *     security:
+ *       - ApiKeyAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: name
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Nama author (boleh sebagian, case-insensitive)
+ *     responses:
+ *       200:
+ *         description: Daftar quotes yang cocok
+ *       400:
+ *         description: Query parameter "name" kosong
+ *       401:
+ *         description: X-API-Key tidak ada / tidak valid
+ *       429:
+ *         description: Rate limit terlampaui
+ */
 router.get(
   "/by-author",
   [
@@ -54,6 +97,32 @@ router.get(
   byAuthorHandler,
 );
 
+/**
+ * @openapi
+ * /quotes/by-category:
+ *   get:
+ *     summary: Cari quotes berdasarkan kategori (di-cache 5 menit)
+ *     tags: [Quotes]
+ *     security:
+ *       - ApiKeyAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: category
+ *         required: true
+ *         schema:
+ *           type: string
+ *           enum: [motivasi, bisnis, kehidupan, cinta, humor]
+ *         description: Kategori quote
+ *     responses:
+ *       200:
+ *         description: Daftar quotes dalam kategori tsb (header X-Cache HIT/MISS)
+ *       400:
+ *         description: Query parameter "category" kosong / bukan kategori yang valid
+ *       401:
+ *         description: X-API-Key tidak ada / tidak valid
+ *       429:
+ *         description: Rate limit terlampaui
+ */
 router.get(
   "/by-category",
   [
@@ -72,6 +141,38 @@ router.get(
   byCategoryHandler,
 );
 
+/**
+ * @openapi
+ * /quotes/all:
+ *   get:
+ *     summary: List semua quotes dengan pagination (di-cache 5 menit)
+ *     tags: [Quotes]
+ *     security:
+ *       - ApiKeyAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           default: 1
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 100
+ *           default: 10
+ *     responses:
+ *       200:
+ *         description: Daftar quotes + info pagination (header X-Cache HIT/MISS)
+ *       400:
+ *         description: Query parameter page/limit tidak valid
+ *       401:
+ *         description: X-API-Key tidak ada / tidak valid
+ *       429:
+ *         description: Rate limit terlampaui
+ */
 router.get(
   "/all",
   [

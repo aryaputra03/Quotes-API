@@ -9,6 +9,10 @@ const {
   notFoundHandler,
 } = require("./middlewares/errorHandler.middleware");
 
+const swaggerUi = require("swagger-ui-express");
+const swaggerSpec = require("./docs/swagger");
+const usageLoggerMiddleware = require("./middlewares/usageLogger.middleware");
+
 const app = express();
 
 // --- Security & utility middleware (Fase 0) ---
@@ -16,6 +20,9 @@ app.use(helmet()); // set header keamanan standar
 app.use(cors()); // izinkan cross-origin request
 app.use(morgan(env.NODE_ENV === "production" ? "combined" : "dev")); // request logging
 app.use(express.json()); // parse JSON body
+
+app.use(usageLoggerMiddleware);
+app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // --- Health check ---
 app.get("/health", (req, res) => {

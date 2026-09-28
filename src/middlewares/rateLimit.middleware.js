@@ -52,4 +52,11 @@ async function rateLimitMiddleware(req, res, next) {
   }
 }
 
+// Ditempel sebagai properti pada function export (bukan diubah jadi
+// object export) supaya quotes.routes.js tetap bisa langsung pakai
+// `require(...)` sebagai middleware tanpa diubah. usage.controller.js
+// butuh angka window yang SAMA PERSIS supaya "sisa kuota" konsisten
+// dengan yang dipakai middleware ini untuk menolak request (429).
+rateLimitMiddleware.WINDOW_MS = WINDOW_MS;
+
 module.exports = rateLimitMiddleware;

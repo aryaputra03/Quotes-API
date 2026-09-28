@@ -62,4 +62,21 @@ async function checkRateLimit(key, limit, windowMs) {
   return { allowed: allowedFlag === 1, count };
 }
 
-module.exports = { checkRateLimit };
+/**
+ * "Intip" jumlah request yang sudah tercatat dalam window berjalan,
+ * TANPA menambah entri baru (beda dengan checkRateLimit, yang selalu
+ * menambah 1 entri setiap dipanggil). Dipakai oleh usage.controller.js
+ * (GET /usage) supaya angka "sisa kuota" selalu sinkron dengan sorted
+ * set Redis yang sama persis dipakai rateLimit.middleware.js.
+ *
+ * @param {string} key      - key Redis, contoh: rate:<api_key>
+ * @param {number} windowMs - ukuran window dalam milidetik
+ * @returns {Promise<number>} jumlah request dalam window berjalan
+ */
+async function getCurrentUsage(key, windowMs) {
+  const now = Date.now();
+  await redis.zremrangebyscore(key, 0, now - windowMs);
+  return redis.zcard(key);
+}
+
+module.exports = { checkRateLimit, getCurrentUsage }; // sebelumnya: module.exports = { checkRateLimit };
