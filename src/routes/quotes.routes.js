@@ -14,6 +14,8 @@ const rateLimitMiddleware = require("../middlewares/rateLimit.middleware");
 
 const { tierMiddleware } = require("../middlewares/tier.middleware");
 
+const cacheMiddleware = require("../middlewares/cache.middleware");
+
 // Harus sinkron dengan kategori yang ada di seed data (Fase 1).
 // Ganti/tambah di sini kalau nanti ada kategori baru.
 const ALLOWED_CATEGORIES = [
@@ -66,6 +68,7 @@ router.get(
       ),
   ],
   validateRequest,
+  cacheMiddleware({ ttlSeconds: 300 }),
   byCategoryHandler,
 );
 
@@ -82,6 +85,7 @@ router.get(
       .withMessage('Query parameter "limit" harus bilangan bulat antara 1-100'),
   ],
   validateRequest,
+  cacheMiddleware({ ttlSeconds: 300 }),
   allHandler,
 );
 
