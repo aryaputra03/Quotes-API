@@ -44,7 +44,7 @@ app.get("/", (req, res) => {
 // --- Routes (akan diisi mulai Fase 2 & 3) ---
 app.use("/api-keys", require("./routes/apiKeys.routes"));
 app.use("/quotes", require("./routes/quotes.routes"));
-// app.use('/usage', require('./routes/usage.routes'));
+app.use("/usage", require("./routes/usage.routes"));
 
 // --- 404 & Error handler (selalu paling bawah) ---
 app.use(notFoundHandler);
